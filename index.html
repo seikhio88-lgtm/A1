@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A1 Anime Player</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1><b>A1</b> Anime Player</h1>
+    <button id="searchBtn" aria-label="Search"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 109.5 16a6.5 6.5 0 004.2-1.6l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 110-9 4.5 4.5 0 010 9z"/></svg></button>
+    <button id="themeBtn" aria-label="Toggle theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18 9 9 0 000-18zm0 16V5a7 7 0 010 14z"/></svg></button>
+  </header>
+  <div class="sbar" id="sbar"><input id="q" type="search" placeholder="Search anime" autocomplete="off"></div>
+  <div id="list"></div>
+  <div id="profile"><div class="av"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z"/></svg></div><h2 style="margin:0;font-family:'Dela Gothic One',system-ui,sans-serif;font-weight:400"><span style="color:var(--pk)">A1</span> Anime Player</h2><small id="who" style="color:var(--muted);font-weight:700">YouTube Embedding</small><div class="stats"><div><b id="stE">0</b>Episodes</div><div><b id="stW">0</b>Min watched</div></div><button class="pbtn" id="addV">Add video from device</button><button class="pbtn" id="themeP">Switch theme</button><button class="pbtn" id="outBtn" style="background:var(--surface);color:var(--text)">Log out</button><div class="notice"><b>Notice</b><span>No new notice right now.</span></div><div class="homead" id="profAd"><small>Advertisement</small><div class="hadw" id="padw"></div></div></div>
+  <nav id="nav"><i class="nind"></i><button class="on" id="navA"><svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 011 1v10a1 1 0 01-1 1h-6v2h3v2H7v-2h3v-2H4a1 1 0 01-1-1V6a1 1 0 011-1zm6 3v6l5-3z"/></svg><span>Anime</span></button><button id="navP"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-8 2-8 5v3h16v-3c0-3-4-5-8-5z"/></svg><span>Profile</span></button></nav>
+  <input type="file" id="file" accept="video/*,audio/*" multiple hidden>
+</div>
+
+<div id="blocked"><h2>Account blocked</h2><p>Your account has been blocked by the admin.</p><button class="pbtn" id="bOut" style="max-width:260px">Log out</button></div>
+<div id="login"><div id="lbox"><h1 class="lh"><b>A1</b> Anime Player</h1><p>Sign in with your email to start watching</p><input id="lemail" type="email" placeholder="Email" autocomplete="email"><input id="lpass" type="password" placeholder="Password" autocomplete="current-password"><button class="pbtn" id="lin">Sign in</button><button class="pbtn alt" id="lup">Create account</button><button class="lnk" id="lforgot">Forgot password?</button><div id="lerr"></div></div></div>
+<div id='watch'>
+  <div class='ytv hide' id='ytv'>
+    <video id='yv' playsinline></video>
+    <div id='yytw' class='yyt'></div>
+    <div class='yload' id='yLoad'><i></i><span>Loading video...</span></div>
+    <div id='yg'></div>
+    <div class='miniui'><button id='mPP' aria-label='Play or pause'></button><button id='mX' aria-label='Close'>&times;</button></div>
+    <button id='natX' class='natx'>App controls</button>
+    <div class='yui'>
+      <div class='ytop'>
+        <button id='yMin' aria-label='Minimise'><svg viewBox='0 0 24 24'><path d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z'/></svg></button>
+        <span class='sp'></span>
+        <button class='atg on' id='yAuto' aria-label='Autoplay'><i></i></button>
+        <button id='yCast' aria-label='Cast'><svg viewBox='0 0 24 24'><path d='M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z'/></svg></button>
+        <button id='yCC' aria-label='Subtitles'><svg viewBox='0 0 24 24'><path d='M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1zm7 0h-1.5v-.5h-2v3h2V13H18v1c0 .55-.45 1-1 1h-3c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1z'/></svg></button>
+        <button id='ySet' aria-label='Settings'><svg viewBox='0 0 24 24'><path d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.611 3.611 0 0112 15.6z'/></svg></button>
+      </div>
+      <div class='ymid'>
+        <button id='yPrev' aria-label='Previous'><svg viewBox='0 0 24 24'><path d='M6 6h2v12H6zm3.5 6l8.5 6V6z'/></svg></button>
+        <button id='yPP' aria-label='Play or pause'></button>
+        <button id='yNext' aria-label='Next'><svg viewBox='0 0 24 24'><path d='M6 18l8.5-6L6 6zM16 6h2v12h-2z'/></svg></button>
+      </div>
+      <div class='ybot'><span id='yT'>0:00 / 0:00</span><button id='ySpd' aria-label='Playback speed'><svg viewBox='0 0 24 24'><path d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.611 3.611 0 0112 15.6z'/></svg></button><button id='yFS' aria-label='Full screen'><svg viewBox='0 0 24 24'><path d='M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z'/></svg></button></div>
+    </div>
+    <input type='range' id='ySeek' min='0' max='1000' value='0' aria-label='Seek'>
+    <div class='ymenu' id='yMenu'><button data-s='speed'>Playback speed · 1x</button><button data-s='loop'>Loop · off</button><button data-s='sub'>Add subtitles (.vtt)</button><button data-s='pip'>Picture in picture</button></div>
+    <div class='spdm' id='ySpdM'><button data-i='0'>0.5x</button><button data-i='1'>0.75x</button><button data-i='2' class='on'>Normal</button><button data-i='3'>1.25x</button><button data-i='4'>1.5x</button><button data-i='5'>2x</button></div>
+    <div class='ripple' id='yrL' style='left:6%'>-2s</div><div class='ripple' id='yrR' style='right:6%'>+2s</div>
+    <div class='adfs' id='adFs'></div>
+    <div class='ytoast' id='yToast'></div>
+  </div>
+  <div class='lsheet' id='lSheet'><div class='lback'></div><div class='lbox'><div class='lgrab'></div><div id='lBody'></div></div></div>
+  <div class='yinfo' id='yinfo'>
+    <div class='adsm' id='adSm'></div>
+    <div class='grab'></div>
+    <div class='srow'>
+    <div class='seas' id='ySeas'><button class='on' data-n='1'>Season 1</button><button data-n='2'>Season 2</button><button data-n='3'>Season 3</button></div></div>
+    <div class='ept'>Episodes</div>
+    <div class='epg' id='yEps'><button data-n='1'>1</button><button data-n='2'>2</button><button data-n='3'>3</button><button data-n='4'>4</button><button data-n='5'>5</button><button data-n='6'>6</button></div>
+    <div class='adbox'><div id="container-7a53a0c4c759bf5f76ddc3297d292632"></div></div>
+    <div id='yAd'></div>
+    <h2 id='yTitle'></h2>
+    <div class='chan'><div class='cav'>A1</div><b>A1 Anime Studio</b><button id='ySub'>Subscribe</button></div>
+    <div class='ystats'><button id='yLike'><b id='yLk'>0</b>Likes</button><div><b id='yVw'>0</b>Views</div><div><b id='yD1'></b><span id='yD2'></span></div></div>
+    <div class='ydesc' id='yDesc'><p id='yDescT'></p><button id='yMore'>See more</button></div>
+    <h3>Search inside this video</h3>
+    <div class='ysub2'>Capture the current frame to look closer</div>
+    <button class='youtline' id='yLens'>Capture frame</button>
+    <canvas id='yCap'></canvas>
+    <button class='ysum' id='ySum'><svg viewBox='0 0 24 24'><path d='M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z'/></svg>Summarise the video</button>
+    <div id='ySumC'></div>
+    <h3 id='yUpH'>Up next</h3>
+    <div id='yUp'></div>
+  </div>
+  <input type='file' id='ysubf' accept='.vtt' hidden>
+</div>
+
+<div id="player">
+  <video id="v" playsinline></video>
+  <div class="layer" id="gest"></div>
+  <div class="ripple" id="rl" style="left:8%">−10s</div>
+  <div class="ripple" id="rr" style="right:8%">+10s</div>
+  <div class="toast" id="toast"></div>
+  <div class="layer ui" id="ui">
+    <div class="top">
+      <button id="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg></button>
+      <span id="title"></span>
+      <button id="more" aria-label="More"><svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z"/></svg></button>
+    </div>
+    <div class="bot">
+      <div class="seek"><span id="cur">00:00</span><input type="range" id="seek" min="0" max="1000" value="0"><span id="dur">00:00</span></div>
+      <div class="row">
+        <button class="chip" id="speed">1.0x</button>
+        <div class="mid">
+          <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+          <button class="play" id="pp" aria-label="Play or pause"></button>
+          <button id="next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6zM16 6h2v12h-2z"/></svg></button>
+        </div>
+        <button class="chip" id="fit">Fit</button>
+      </div>
+    </div>
+  </div>
+  <button class="lockbtn" id="lock" aria-label="Lock controls"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6a5 5 0 00-10 0v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zM9 6a3 3 0 016 0v2H9z"/></svg></button>
+  <div id="menu">
+    <button data-m="loop">Loop: off</button>
+    <button data-m="sub">Add subtitle (.vtt)</button>
+    <button data-m="pip">Picture in picture</button>
+    <button data-m="rot">Rotate 90°</button>
+    <button data-m="info">File info</button>
+  </div>
+  <input type="file" id="subfile" accept=".vtt" hidden>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
